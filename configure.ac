@@ -26,7 +26,7 @@ AC_PROG_CXX
 
 #untar the lib
 BASEPBNAME="hdf5"
-PBTGZNAME=hdf5small_cxx_1.8.19.tar.gz
+PBTGZNAME=hdf5small_cxx_1.10.3.tar.gz
 cd src
 if test -d ./${BASEPBNAME}; then 
 	echo 'found ' $BASEPBNAME ' header sources and tar archive;using what is there.'
@@ -46,10 +46,10 @@ cd ../;
 ## we add the '-w' flag to suppress all the warnings hdf5 prints
 ./configure --with-pic --enable-shared=no --enable-cxx \
     --with-szlib \
-    CXX="${CXX}" CXFLAGS="${CXXFLAGS} -w" \
+    CXX="${CXX}" CXXFLAGS="${CXXFLAGS} -std=c++11 -w" \
     CC="${CC}" CFLAGS="${CFLAGS} -w" \
     LDFLAGS="-L`pwd -P`/szip/src/.libs" \
-    CPPFLAGS="-I`pwd -P`/szip/src/"
+    CPPFLAGS="-I`pwd -P`/szip/src/" 
 $MAKE lib
 cd ../../
 
