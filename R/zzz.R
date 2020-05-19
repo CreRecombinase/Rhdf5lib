@@ -1,16 +1,22 @@
 #' Compiler arguments for using Rhdf5lib
 #' 
-#' This function returns values for \code{PKG_CXX_LIBS} and
-#' \code{PKG_CC_FLAGS} variables for use in Makevars files. 
+#' This function returns values for \code{PKG_LIBS} variables for use in 
+#' Makevars files.
 #' 
 #' @param opt A scalar character from the list of available options; 
-#' default is \code{PKG_CXX_LIBS}.
+#' default is \code{PKG_CXX_LIBS}.  Valid options are \code{PKG_C_LIBS},
+#' \code{PKG_CXX_LIBS}, \code{PKG_C_HL_LIBS} and \code{PKG_CXX_HL_LIBS}, where
+#' \code{HL} indicates that you want to include the HDF5 'high-level' API and
+#' \code{CXX} denotes including the C++ interface. 
 #' @return \code{NULL}; prints the corresponding value to stdout.
 #' @examples
-#' pkgconfig("PKG_CXX_LIBS")
 #' pkgconfig("PKG_C_LIBS")
+#' pkgconfig("PKG_CXX_LIBS")
+#' pkgconfig("PKG_C_HL_LIBS")
+#' pkgconfig("PKG_CXX_HL_LIBS")
 #' @export
-pkgconfig <- function(opt = c("PKG_CXX_LIBS", "PKG_C_LIBS")) {
+#' @rawNamespace if(tools:::.OStype() == "windows") { importFrom(utils, shortPathName) }
+pkgconfig <- function(opt = c("PKG_CXX_LIBS", "PKG_C_LIBS", "PKG_CXX_HL_LIBS", "PKG_C_HL_LIBS")) {
     
     path <- Sys.getenv(
         x = "RHDF5LIB_RPATH",
@@ -23,22 +29,20 @@ pkgconfig <- function(opt = c("PKG_CXX_LIBS", "PKG_C_LIBS")) {
         arch <- ""
     }
     patharch <- paste0(path, arch)
+    #patharch <- gsub(x = patharch, pattern = " ", replacement = "\\ ", fixed = TRUE)
 
     result <- switch(match.arg(opt), 
-                    # PKG_CPPFLAGS = {
-                    #     sprintf('-I"%s"', system.file("include", package="Rhdf5lib"))
-                    # }, 
                      PKG_C_LIBS = {
                          switch(Sys.info()['sysname'], 
                                 Windows = {
-                                    patharch <- gsub(x = shortPathName(patharch),
+                                    patharch <- gsub(x = utils::shortPathName(patharch),
                                                    pattern = "\\",
                                                    replacement = "/", 
                                                    fixed = TRUE)
                                     sprintf('-L%s -lhdf5 -lszip -lz -lpsapi', 
                                             patharch)
                                 }, {
-                                    sprintf('%s/libhdf5.a %s/libsz.a -lz', 
+                                    sprintf('"%s/libhdf5.a" "%s/libsz.a" -lz', 
                                             patharch, patharch)
                                 }
                          )
@@ -48,17 +52,49 @@ pkgconfig <- function(opt = c("PKG_CXX_LIBS", "PKG_C_LIBS")) {
                                 Windows = {
                                    ## for some reason double quotes aren't always sufficient
                                    ## so we use the 8+3 form of the path
-                                   patharch <- gsub(x = shortPathName(patharch),
+                                   patharch <- gsub(x = utils::shortPathName(patharch),
                                                    pattern = "\\",
                                                    replacement = "/", 
                                                    fixed = TRUE)
                                     sprintf('-L%s -lhdf5_cpp -lhdf5 -lszip -lz -lpsapi', 
                                             patharch)
                                 }, {
-                                    sprintf('%s/libhdf5_cpp.a %s/libhdf5.a %s/libsz.a -lz',
+                                    sprintf('"%s/libhdf5_cpp.a" "%s/libhdf5.a" "%s/libsz.a" -lz',
                                             patharch, patharch, patharch)
                                 }
                          )
+                     },
+                     PKG_C_HL_LIBS = {
+                       switch(Sys.info()['sysname'], 
+                              Windows = {
+                                patharch <- gsub(x = shortPathName(patharch),
+                                                 pattern = "\\",
+                                                 replacement = "/", 
+                                                 fixed = TRUE)
+                                sprintf('-L%s -lhdf5_hl -lhdf5 -lszip -lz -lpsapi', 
+                                        patharch)
+                              }, {
+                                sprintf('%s/libhdf5_hl.a %s/libhdf5.a %s/libsz.a -lz', 
+                                        patharch, patharch, patharch)
+                              }
+                       )
+                     }, 
+                     PKG_CXX_HL_LIBS = {
+                       switch(Sys.info()['sysname'], 
+                              Windows = {
+                                ## for some reason double quotes aren't always sufficient
+                                ## so we use the 8+3 form of the path
+                                patharch <- gsub(x = shortPathName(patharch),
+                                                 pattern = "\\",
+                                                 replacement = "/", 
+                                                 fixed = TRUE)
+                                sprintf('-L%s -lhdf5_hl_cpp -lhdf5_hl -lhdf5_cpp -lhdf5 -lszip -lz -lpsapi', 
+                                        patharch)
+                              }, {
+                                sprintf('%s/libhdf5_hl_cpp.a %s/libhdf5_hl.a %s/libhdf5_cpp.a %s/libhdf5.a %s/libsz.a -lz',
+                                        patharch, patharch, patharch, patharch, patharch)
+                              }
+                       )
                      }
     )
     

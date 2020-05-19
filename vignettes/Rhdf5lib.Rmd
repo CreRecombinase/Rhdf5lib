@@ -25,26 +25,25 @@ demonstrates how packages should link to **Rhdf5lib**.
 
 ## Link to the library
 
-To link successfully to the HDF5 library included in **Rhdf5lib** a package must include *both* a `src/Makevars.win` *and* `src/Makevars` file.  *Note*: the contents of `src/Makevars.win` and `src/Makevars` are almost identical, but not quite. Be careful of the differences.
+To link successfully to the HDF5 library included in **Rhdf5lib** a package must include *both* a `src/Makevars.win` *and* `src/Makevars` file.  
 
-Create a `src/Makevars.win` file with the following lines
+Add the following lines to both `src/Makevars` and `src/Makevars.win`
 
     RHDF5_LIBS=$(shell echo 'Rhdf5lib::pkgconfig("PKG_CXX_LIBS")'|\
         "${R_HOME}/bin/R" --vanilla --slave)  
     PKG_LIBS=$(RHDF5_LIBS)
 
-
-and a `src/Makevars` file with the following lines
-
-    RHDF5_LIBS=`echo 'Rhdf5lib::pkgconfig("PKG_CXX_LIBS")'|\
-        "${R_HOME}/bin/R" --vanilla --slave`
-    PKG_LIBS=$(RHDF5_LIBS)
-
-The statement for each platform modifies the `$PKG_LIBS` variable. If your package needs to add to the `$PKG_LIBS` variable, do so by adding to the `PKG_LIBS=$(RHDF5_LIBS)` line, e.g.,
+The statement for each platform modifies the `$PKG_LIBS` variable. If your package needs to add additional information to the `$PKG_LIBS` variable, do so by adding to the `PKG_LIBS=$(RHDF5_LIBS)` line, e.g.,
 
     PKG_LIBS=$(RHDF5_LIBS) -L/path/to/foolib -lfoo
     
+*Note that the use of `$(shell ...)` necessitates using GNU Make, and you need to make this requirement explict in your package's DESCRIPTION file via the entry:*
+
+    SystemRequirements: GNU make
+    
 The default behaviour of `Rhdf5lib::pkgconfig` is to report the location of the shared library as the result of `system.file("lib", package="Rhdf5lib")`.  If this is inappropriate for your system e.g. a cluster with a shared file system, use the environment variable `RHDF5LIB_RPATH` to override this and set an appropriate location for your infrastructure.
+
+Valid options to provide to `pkgconfig()`  are: `PKG_C_LIBS`, `PKG_CXX_LIBS`, `PKG_C_HL_LIBS` and `PKG_CXX_HL_LIBS`.  Choose the most appropriate depending upon whether your linking code requires the C++ API (`C` vs `CXX`) and/or the HDF5 'high-level' API (`HL`).  Choosing options that you don't require should not harm performance, but will result in a larger library and greater memory usage for your application, so it is good practice to select only the features you need.
 
 ## Locating the library headers
 
@@ -57,6 +56,16 @@ In you C or C++ code files, you can then use the standard include techniques, e.
 ```{R headers}
 system.file(package="Rhdf5lib", "include")
 ```
+
+# Non-standard ZLIB location
+
+*Rhdf5lib* requires the ZLIB compression library to be installed on non-Windows platforms.  If installation fails due with a message reporting that **zlib.h** can not be found, it is possible to provide the appropriate path explicitly during installation via the `configure.args` argument e.g. 
+
+```{r, zlib-path, eval = FALSE}
+BiocManager::install('Rhdf5lib', configure.args = "--with-zlib='/path/to/zlib/'")
+```
+
+Here `/path/to/zlib` should be the directory that contains both `include/zlib.h` and `lib/libz.a`.  For example, on a typical Ubuntu installation this may be `/usr/` while for libraries installed via **miniconda** this location could be `/home/<USER>/miniconda3/`.
 
 # Funding
 
