@@ -1,107 +1,6 @@
 # Creating hdf5small_cxx.tar.gz
 
-Instructions for editing the hdf5 source down into a reduced version for inclusion the package.  The is just a record of the steps I took, and should be automated in the future if possible.
-
-### Deleted the following folders:
-  - /examples
-  - /fortran
-  - /hl
-  - /release_docs
-  - /test
-  - /testpar
-  - /tools
-  - /c++/examples
-  - /c++/test
-
-### Modified */configure.ac*
-
-- Remove references to the deleted files.  Replace lines 2924 with
-
-```
-AC_CONFIG_FILES([src/libhdf5.settings
-                 Makefile
-                 src/Makefile
-                 c++/Makefile
-                 c++/src/Makefile
-                 c++/src/h5c++])
-```
-- Comment out lines 3371 - 3379
-
-```
-#chmod 755 tools/src/misc/h5cc
-#
-#if test "X$HDF_FORTRAN" = "Xyes"; then
-#  chmod 755 fortran/src/h5fc
-#fi
-```
-- Comment out reference to *fortran/src/H5config_f.inc* on lines 464 & 465
-
-Then run `autoconf` in `/`.
-
-### Modified */c++/Makefile.am*
-
-- Remove references to *test* and *examples* folders on lines 23 and 25 e.g.
-
-```
-if BUILD_CXX_CONDITIONAL
-   SUBDIRS=src
-endif
-DIST_SUBDIRS = src
-```
-
-### Modified */Makefile.am*
-
-- Remove references to multiple folders that no longer exist on lines 78 - 80 e.g.
-
-```
-SUBDIRS = src . $(CXX_DIR)
-DIST_SUBDIRS = src . c++
-```
-
-- Comment out lines for building the tests, lines 99 - 105.
-
-```
-# Make all, tests, and (un)install
-#tests:
-#	for d in $(SUBDIRS); do                        \
-#	  if test $$d != .; then                                        \
-#	   (cd $$d && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;            \
-#	  fi;                                                           \
-#	  done
-```
-run `automake` in `/`
-
-```{bash}
-../configure  \
---enable-cxx \
---enable-static \
---disable-shared \
---disable-hl \
---disable-fortran
-```
-
-# Modifying szip-2.1.1
-
-### Delete files and folders
-  - /autom4te.cache
-  - /test
-  
-### Modify configure.ac  
-
-Remove reference to *test* folder, line 200:
-
-```
-AC_CONFIG_FILES([Makefile
-                 src/Makefile
-                 ])
-```
-  
-### Modify Makefile.in
-
-Remove reference to *test* folder, line 327:
-```
-SUBDIRS = src
-```
+Instructions for creating the source tarball can now be found in [downloadHDF5.Rmd](downloadHDF5.Rmd).
 
 # Compiling on Windows
 
@@ -136,14 +35,14 @@ pacman -S mingw-w64-i686-toolchain mingw32/mingw-w64-i686-cmake
 export PATH=/c/Rtools/mingw_32/bin:/c/msys64/mingw32/bin:$PATH
 export CPATH=/c/Rtools/mingw_32/i686-w64-mingw32/include:/c/Rtools/mingw_32/include:$CPATH
 export LD_LIBRARY_PATH=/c/Rtools/mingw_32/i686-w64-mingw32/lib:/c/Rtools/mingw_32/lib:$LD_LiBRARY_PATH
-mkdir /c/hdf5_build/CMake-hdf5-1.10.3/hdf5-1.10.3/build_32
-cd /c/hdf5_build/CMake-hdf5-1.10.3/hdf5-1.10.3/build_32
+mkdir /c/hdf5_build/CMake-hdf5-1.10.5/hdf5-1.10.5/build_32
+cd /c/hdf5_build/CMake-hdf5-1.10.5/hdf5-1.10.5/build_32
 rm -R *
 cmake ../ -G "MSYS Makefiles" \
 -DSITE_OS_BITS:STRING="32" \
 -DCMAKE_C_STANDARD_LIBRARIES="-liberty" \
 -DBUILD_SHARED_LIBS:BOOL=ON \
--DHDF5_BUILD_HL_LIB:BOOL=OFF \
+-DHDF5_BUILD_HL_LIB:BOOL=ON \
 -DHDF5_ENABLE_Z_LIB_SUPPORT:BOOL=ON \
 -DHDF5_ENABLE_SZIP_SUPPORT:BOOL=ON \
 -DBUILD_TESTING:BOOL=OFF \
@@ -151,7 +50,7 @@ cmake ../ -G "MSYS Makefiles" \
 -DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING="TGZ" \
 -DZLIB_TGZ_NAME:STRING="ZLib.tar.gz" \
 -DSZIP_TGZ_NAME:STRING="SZip.tar.gz" \
--DTGZPATH:STRING="/c/hdf5_build/CMake-hdf5-1.10.3/" \
+-DTGZPATH:STRING="/c/hdf5_build/CMake-hdf5-1.10.5/" \
 -DCMAKE_BUILD_TYPE:STRING="Release"
 cmake --build . 2> stderr.txt
 ```
@@ -162,14 +61,14 @@ cmake --build . 2> stderr.txt
 export PATH=/c/Rtools/mingw_64/bin:/c/msys64/mingw64/bin:$PATH
 export CPATH=/c/Rtools/mingw_64/x86_64-w64-mingw32/include:/c/Rtools/mingw_64/include:$CPATH
 export LD_LIBRARY_PATH=/c/Rtools/mingw_64/x86_64-w64-mingw32/lib:/c/Rtools/mingw_64/lib:$LD_LiBRARY_PATH
-mkdir /c/hdf5_build/CMake-hdf5-1.10.3/hdf5-1.10.3/build_64
-cd /c/hdf5_build/CMake-hdf5-1.10.3/hdf5-1.10.3/build_64
+mkdir /c/hdf5_build/CMake-hdf5-1.10.5/hdf5-1.10.5/build_64
+cd /c/hdf5_build/CMake-hdf5-1.10.5/hdf5-1.10.5/build_64
 rm -R *
 cmake ../ -G "MSYS Makefiles" \
 -DSITE_OS_BITS:STRING="64" \
 -DCMAKE_C_STANDARD_LIBRARIES="-liberty" \
 -DBUILD_SHARED_LIBS:BOOL=ON \
--DHDF5_BUILD_HL_LIB:BOOL=OFF \
+-DHDF5_BUILD_HL_LIB:BOOL=ON \
 -DHDF5_ENABLE_Z_LIB_SUPPORT:BOOL=ON \
 -DHDF5_ENABLE_SZIP_SUPPORT:BOOL=ON \
 -DBUILD_TESTING:BOOL=OFF \
@@ -177,16 +76,43 @@ cmake ../ -G "MSYS Makefiles" \
 -DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING="TGZ" \
 -DZLIB_TGZ_NAME:STRING="ZLib.tar.gz" \
 -DSZIP_TGZ_NAME:STRING="SZip.tar.gz" \
--DTGZPATH:STRING="/c/hdf5_build/CMake-hdf5-1.10.3/" \
+-DTGZPATH:STRING="/c/hdf5_build/CMake-hdf5-1.10.5/" \
 -DCMAKE_BUILD_TYPE:STRING="Release"
 cmake --build . 2> stderr.txt
 ```
 
 In `src/H5win32defs.h` define `H5open` as `#define HDopen(S,F,M)       _open(S,F|_O_BINARY,M)`
 
-change line 291 from
+change line 291 H5Defl.h from
 
 ```diff
 - if((fd = HDopen(full_name, O_RDONLY)) < 0)
 + if((fd = HDopen(full_name, O_RDONLY, 0)) < 0)
 ```
+
+```
+version=1.10.5
+cd /c/hdf5_build/CMake-hdf5-${version}
+mkdir /c/hdf5_build/CMake-hdf5-${version}/hdf5
+mkdir /c/hdf5_build/CMake-hdf5-${version}/hdf5/c++
+mkdir /c/hdf5_build/CMake-hdf5-${version}/hdf5/hl
+cp /c/hdf5_build/CMake-hdf5-${version}/hdf5-${version}/src/*.h /c/hdf5_build/CMake-hdf5-${version}/hdf5/
+cp /c/hdf5_build/CMake-hdf5-${version}/hdf5-${version}/c++/src/*.h /c/hdf5_build/CMake-hdf5-${version}/hdf5/c++/
+cp /c/hdf5_build/CMake-hdf5-${version}/hdf5-${version}/hl/src/*.h /c/hdf5_build/CMake-hdf5-${version}/hdf5/hl/
+cp /c/hdf5_build/CMake-hdf5-${version}/hdf5-${version}/hl/c++/src/*.h /c/hdf5_build/CMake-hdf5-${version}/hdf5/hl/
+cp /c/hdf5_build/CMake-hdf5-${version}/hdf5-${version}/build_32/*.h /c/hdf5_build/CMake-hdf5-${version}/hdf5/
+tar cf - hdf5 | gzip -6 > hdf5_headers_${version}.tar.gz
+```
+
+```
+DIR32="${HOME}/Code/bioconductor/Rhdf5lib/src/winlib/i386/"
+cp /c/hdf5_build/CMake-hdf5-1.10.5/hdf5-1.10.5/build_32/bin/liblibhdf5.a "${DIR32}"libhdf5.a 
+cp /c/hdf5_build/CMake-hdf5-1.10.5/hdf5-1.10.5/build_32/bin/liblibhdf5_cpp.a "${DIR32}"libhdf5_cpp.a
+cp /c/hdf5_build/CMake-hdf5-1.10.5/hdf5-1.10.5/build_32/bin/liblibhdf5_hl.a "${DIR32}"libhdf5_hl.a
+cp /c/hdf5_build/CMake-hdf5-1.10.5/hdf5-1.10.5/build_32/bin/liblibhdf5_hl_cpp.a "${DIR32}"libhdf5_hl_cpp.a
+
+DIR64="${HOME}/Code/bioconductor/Rhdf5lib/src/winlib/x64/"
+cp /c/hdf5_build/CMake-hdf5-1.10.5/hdf5-1.10.5/build_64/bin/liblibhdf5.a "${DIR64}"libhdf5.a 
+cp /c/hdf5_build/CMake-hdf5-1.10.5/hdf5-1.10.5/build_64/bin/liblibhdf5_cpp.a "${DIR64}"libhdf5_cpp.a
+cp /c/hdf5_build/CMake-hdf5-1.10.5/hdf5-1.10.5/build_64/bin/liblibhdf5_hl.a "${DIR64}"libhdf5_hl.a
+cp /c/hdf5_build/CMake-hdf5-1.10.5/hdf5-1.10.5/build_64/bin/liblibhdf5_hl_cpp.a "${DIR64}"libhdf5_hl_cpp.a
